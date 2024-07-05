@@ -61,3 +61,13 @@ class ToxicityClassificationTrainer(pl.LightningModule):
         loss, probabilities = self(self.common_step(batch))
         self.log("test_loss", loss, prog_bar=True, logger=True)
         return loss
+
+    def configure_optimizers(self):
+        optimizer = self.experiment_params["optimizer"]["class"](self.parameters(),
+                                                                 self.experiment_params["optimizer"]["kwargs"])
+
+        if "scheduler" in self.experiment_params.keys():
+            scheduler = self.experiment_params["scheduler"]["class"](self.experiment_params["scheduler"]["kwargs"])
+            return dict(optimizer=optimizer, lr_scheduler=scheduler)
+
+        return optimizer

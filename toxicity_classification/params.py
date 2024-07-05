@@ -1,4 +1,5 @@
 import torch.nn as nn
+import torch.optim
 
 experiment_params = {
     "tokenizer_type": "google-bert/bert-base-uncased",
@@ -8,4 +9,16 @@ experiment_params = {
         "activation":[nn.ReLU(), nn.ReLU()],
         "dropout": [0.5]
     },
+    "optimizers":{
+    "adam": {
+        "class": torch.optim.Adam,
+        "kwargs": {
+            "weight_decay": 5e-4,
+            "lr": 1e-5,
+            }
+        }
+    },
+    "schedulers": {
+
+    }
 }
