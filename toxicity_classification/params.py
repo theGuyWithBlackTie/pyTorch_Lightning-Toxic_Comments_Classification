@@ -47,7 +47,7 @@ experiment_params = {
         "train_data_path": "../data/train_dataset.pkl",
         "val_data_path": "../data/validation_dataset.pkl",
         "test_data_path": "../data/test_dataset.pkl",
-        "labels": ["toxic", "severe_toxic", "obscene", "threat", "insult", "identity_hate"]
+        "labels": ["toxic", "severe_toxic", "obscene", "threat", "insult", "identity_hate", "no_toxicity"]
     },
     "epochs": 30,
     "warmup_proportion": 0.1

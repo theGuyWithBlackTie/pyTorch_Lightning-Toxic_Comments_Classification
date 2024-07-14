@@ -13,6 +13,9 @@ class ToxicityClassificationTrainer(pl.LightningModule):
 
         self.training_step_loss_outputs = []
         self.validation_step_loss_outputs = []
+        self.test_step_loss_outputs = []
+
+        self.loss_fn = torch.nn.BCEWithLogitsLoss()
 
     def common_step(self, batch):
         return {
@@ -31,7 +34,7 @@ class ToxicityClassificationTrainer(pl.LightningModule):
         return loss, probabilities
 
     def training_step(self, batch, batch_idx):
-        loss, probabilities = self(self.common_step(batch))
+        loss, probabilities = self(**self.common_step(batch))
         self.log("train_loss", loss, prog_bar=True, logger=True)
         self.training_step_loss_outputs.append(loss)
         return loss
@@ -43,8 +46,9 @@ class ToxicityClassificationTrainer(pl.LightningModule):
         return loss
 
     def test_step(self, batch, batch_idx):
-        loss, probabilities = self(self.common_step(batch))
+        loss, probabilities = self(**self.common_step(batch))
         self.log("test_loss", loss, prog_bar=True, logger=True)
+        self.test_step_loss_outputs.append(loss)
         return loss
 
     def configure_optimizers(self):
@@ -89,4 +93,4 @@ class ToxicityClassificationTrainer(pl.LightningModule):
 
         if validation_loss < self.lowest_valid_loss:
             self.lowest_valid_loss = validation_loss
-            torch.save(self.model.state_dict(), "")
+            torch.save(self.toxicity_model.state_dict(), "experiment_outputs/toxicity_model.pth")
