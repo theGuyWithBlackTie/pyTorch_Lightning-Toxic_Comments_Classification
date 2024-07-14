@@ -3,6 +3,7 @@ from pytorch_lightning import Trainer
 
 from params import experiment_params
 from trainer import ToxicityClassificationTrainer
+from dataset import ToxicCommentsDataModule
 
 if __name__ == "__main__":
     # -----------------------------------
@@ -17,5 +18,15 @@ if __name__ == "__main__":
 
 
     trainer = Trainer()
+    data_module = ToxicCommentsDataModule(
+        train_data_path=experiment_params["dataset_params"]["train_data_path"],
+        val_data_path=experiment_params["dataset_params"]["val_data_path"],
+        test_data_path=experiment_params["dataset_params"]["test_data_path"],
+        labels=experiment_params["dataset_params"]["labels"],
+        tokenizer_name=experiment_params["tokenizer_name"]
+    )
+    data_module.setup()
+
+    experiment_params["dataset_params"]["train_dataloader_length"] = len(data_module.train_dataloader())
     model = ToxicityClassificationTrainer(experiment_params)
-    trainer.fit(model)
+    trainer.fit(model, datamodule=data_module)

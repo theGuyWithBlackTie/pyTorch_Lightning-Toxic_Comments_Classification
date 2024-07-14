@@ -15,7 +15,12 @@ class ToxicityClassificationTrainer(pl.LightningModule):
         self.validation_step_loss_outputs = []
 
     def common_step(self, batch):
-        return batch["input_ids"], batch["attention_mask"], batch["token_type_ids"], batch["labels"]
+        return {
+            "input_ids": batch["input_ids"],
+            "attention_mask": batch["attention_mask"],
+            "token_type_ids": batch["token_type_ids"],
+            "labels": batch["labels"]
+        }
 
     def forward(self, input_ids, attention_mask, token_type_ids, labels=None):
         logits = self.toxicity_model(input_ids, attention_mask, token_type_ids)
@@ -32,7 +37,7 @@ class ToxicityClassificationTrainer(pl.LightningModule):
         return loss
 
     def validation_step(self, batch, batch_idx):
-        loss, probabilities = self(self.common_step(batch))
+        loss, probabilities = self(**self.common_step(batch))
         self.log("val_loss", loss, prog_bar=True, logger=True)
         self.validation_step_loss_outputs.append(loss)
         return loss
@@ -47,7 +52,18 @@ class ToxicityClassificationTrainer(pl.LightningModule):
                                                                  **self.experiment_params["optimizer"]["kwargs"])
 
         if "scheduler" in self.experiment_params.keys():
-            scheduler = self.experiment_params["scheduler"]["class"](**self.experiment_params["scheduler"]["kwargs"])
+            num_warmup_steps = int(self.experiment_params["dataset_params"]["train_dataloader_length"]*
+                                self.experiment_params["epochs"]*self.experiment_params["warmup_proportion"])
+            total_training_steps = int(self.experiment_params["dataset_params"]["train_dataloader_length"] *
+                                       self.experiment_params["epochs"])
+
+            if "num_warmup_steps" in self.experiment_params["scheduler"]["compute"]:
+                self.experiment_params["scheduler"]["kwargs"]["num_warmup_steps"] = num_warmup_steps
+            if "num_training_steps" in self.experiment_params["scheduler"]["compute"]:
+                self.experiment_params["scheduler"]["kwargs"]["num_training_steps"] = total_training_steps
+
+            scheduler = self.experiment_params["scheduler"]["class"](optimizer,
+                                                                       **self.experiment_params["scheduler"]["kwargs"])
             return dict(optimizer=optimizer, lr_scheduler=scheduler)
 
         return dict(optimizer=optimizer)

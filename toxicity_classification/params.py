@@ -3,7 +3,7 @@ import torch.optim
 import transformers
 
 experiment_params = {
-    "tokenizer_type": "google-bert/bert-base-uncased",
+    "tokenizer_name": "google-bert/bert-base-uncased",
     "transformer_name": "google-bert/bert-base-uncased",
     "ffn_params": {
         "layers": [768, 384, 7],
@@ -42,5 +42,13 @@ experiment_params = {
                 "num_cycles": 1
                 }
             }
-    }
+    },
+    "dataset_params": {
+        "train_data_path": "../data/train_dataset.pkl",
+        "val_data_path": "../data/validation_dataset.pkl",
+        "test_data_path": "../data/test_dataset.pkl",
+        "labels": ["toxic", "severe_toxic", "obscene", "threat", "insult", "identity_hate"]
+    },
+    "epochs": 30,
+    "warmup_proportion": 0.1
 }
