@@ -10,7 +10,7 @@ experiment_params = {
         "activation":[nn.ReLU(), nn.ReLU()],
         "dropout": [0.5]
     },
-    "optimizers":{
+    "optimizer":{
     "adam": {
         "class": torch.optim.Adam,
         "kwargs": {
@@ -28,7 +28,7 @@ experiment_params = {
             }
         }
     },
-    "schedulers": {
+    "scheduler": {
         "get-linear-schedule-with-warmup": {
             "class": transformers.get_linear_schedule_with_warmup,
             "compute": ["num_warmup_steps", "num_training_steps"],

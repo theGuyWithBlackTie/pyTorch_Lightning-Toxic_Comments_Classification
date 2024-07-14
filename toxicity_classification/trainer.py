@@ -11,6 +11,9 @@ class ToxicityClassificationTrainer(pl.LightningModule):
         self.toxicity_model = ToxicCommentTaggerBERT(experiment_params)
         self.lowest_valid_loss = float("inf")
 
+        self.training_step_loss_outputs = []
+        self.validation_step_loss_outputs = []
+
     def common_step(self, batch):
         return batch["input_ids"], batch["attention_mask"], batch["token_type_ids"], batch["labels"]
 
@@ -25,11 +28,13 @@ class ToxicityClassificationTrainer(pl.LightningModule):
     def training_step(self, batch, batch_idx):
         loss, probabilities = self(self.common_step(batch))
         self.log("train_loss", loss, prog_bar=True, logger=True)
+        self.training_step_loss_outputs.append(loss)
         return loss
 
     def validation_step(self, batch, batch_idx):
         loss, probabilities = self(self.common_step(batch))
         self.log("val_loss", loss, prog_bar=True, logger=True)
+        self.validation_step_loss_outputs.append(loss)
         return loss
 
     def test_step(self, batch, batch_idx):
@@ -39,31 +44,33 @@ class ToxicityClassificationTrainer(pl.LightningModule):
 
     def configure_optimizers(self):
         optimizer = self.experiment_params["optimizer"]["class"](self.parameters(),
-                                                                 self.experiment_params["optimizer"]["kwargs"])
+                                                                 **self.experiment_params["optimizer"]["kwargs"])
 
         if "scheduler" in self.experiment_params.keys():
-            scheduler = self.experiment_params["scheduler"]["class"](self.experiment_params["scheduler"]["kwargs"])
+            scheduler = self.experiment_params["scheduler"]["class"](**self.experiment_params["scheduler"]["kwargs"])
             return dict(optimizer=optimizer, lr_scheduler=scheduler)
 
         return dict(optimizer=optimizer)
 
-    def training_epoch_end(self, outputs):
+    def on_train_epoch_end(self):
         """
         This function is called at the end of each training epoch
         :param outputs:
         :return:
         """
-        loss = sum(output['loss'] for output in outputs)/len(outputs)
-        self.log("Training loss", loss, prog_bar=True, logger=True)
+        training_loss = torch.stack(self.training_step_loss_outputs).mean()
+        self.log("training_loss", training_loss, prog_bar=True, logger=True)
+        self.training_step_loss_outputs.clear()
 
-    def validation_epoch_end(self, outputs):
+    def on_validation_epoch_end(self):
         """
-        This function is called at the end of
+        This function is called at the end of validation epoch
         :param outputs:
         """
-        validation_loss = sum(output['loss'] for output in outputs)/len(outputs)
-        self.log("Validation loss", validation_loss, prog_bar=True, logger=True)
+        validation_loss = torch.stack(self.validation_step_loss_outputs).mean()
+        self.log("validation_loss", validation_loss, prog_bar=True, logger=True)
+        self.validation_step_loss_outputs.clear()
 
         if validation_loss < self.lowest_valid_loss:
             self.lowest_valid_loss = validation_loss
-            torch.save(self.model.state_dict())
+            torch.save(self.model.state_dict(), "")
