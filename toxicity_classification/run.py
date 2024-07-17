@@ -1,9 +1,13 @@
 import argparse
 from pytorch_lightning import Trainer
+from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 
 from params import experiment_params
 from trainer import ToxicityClassificationTrainer
 from dataset import ToxicCommentsDataModule
+
+def return_early_stopping_callback(patience, min_delta):
+    return EarlyStopping(monitor="validation_loss", patience=patience, min_delta=min_delta, verbose=True, mode="min")
 
 if __name__ == "__main__":
     # -----------------------------------

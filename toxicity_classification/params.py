@@ -50,5 +50,17 @@ experiment_params = {
         "labels": ["toxic", "severe_toxic", "obscene", "threat", "insult", "identity_hate", "no_toxicity"]
     },
     "epochs": 30,
-    "warmup_proportion": 0.1
+    "warmup_proportion": 0.1,
+    "early_stopping": {
+        "validation_loss": {
+            "to_check": True,
+            "patience": 20,
+            "min_delta": 0.001
+        },
+        "training_loss": {
+            "to_check": False,
+            "patience": 20,
+            "min_delta": 0.001
+        }
+    }
 }
