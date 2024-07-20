@@ -35,13 +35,13 @@ class ToxicityClassificationTrainer(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         loss, probabilities = self(**self.common_step(batch))
-        self.log("train_loss", loss, prog_bar=True, logger=True)
+        self.log("training_loss", loss, prog_bar=True, logger=True)
         self.training_step_loss_outputs.append(loss)
         return loss
 
     def validation_step(self, batch, batch_idx):
         loss, probabilities = self(**self.common_step(batch))
-        self.log("val_loss", loss, prog_bar=True, logger=True)
+        self.log("validation_loss", loss, prog_bar=True, logger=True)
         self.validation_step_loss_outputs.append(loss)
         return loss
 
