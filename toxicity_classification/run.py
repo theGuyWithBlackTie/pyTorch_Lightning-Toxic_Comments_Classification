@@ -24,7 +24,9 @@ if __name__ == "__main__":
 
     training_loss_earlystopping = TrainingLossEarlyStopping(experiment_params)
     validation_loss_earlystopping = ValidationLossEarlyStopping(experiment_params)
-    trainer = Trainer(callbacks=[training_loss_earlystopping, validation_loss_earlystopping])
+    trainer = Trainer(callbacks=[training_loss_earlystopping, validation_loss_earlystopping],
+                      max_epochs=experiment_params["epochs"])
+
     data_module = ToxicCommentsDataModule(
         train_data_path=experiment_params["dataset_params"]["train_data_path"],
         val_data_path=experiment_params["dataset_params"]["val_data_path"],
