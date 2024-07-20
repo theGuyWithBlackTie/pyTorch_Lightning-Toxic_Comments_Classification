@@ -5,6 +5,8 @@ from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 from params import experiment_params
 from trainer import ToxicityClassificationTrainer
 from dataset import ToxicCommentsDataModule
+from callbacks import ValidationLossEarlyStopping, TrainingLossEarlyStopping
+
 
 def return_early_stopping_callback(patience, min_delta):
     return EarlyStopping(monitor="validation_loss", patience=patience, min_delta=min_delta, verbose=True, mode="min")
@@ -20,8 +22,9 @@ if __name__ == "__main__":
     experiment_params["optimizer"] = experiment_params["optimizer"][args.optimizer]
     experiment_params["scheduler"] = experiment_params["scheduler"][args.scheduler]
 
-
-    trainer = Trainer()
+    training_loss_earlystopping = TrainingLossEarlyStopping(experiment_params)
+    validation_loss_earlystopping = ValidationLossEarlyStopping(experiment_params)
+    trainer = Trainer(callbacks=[training_loss_earlystopping, validation_loss_earlystopping])
     data_module = ToxicCommentsDataModule(
         train_data_path=experiment_params["dataset_params"]["train_data_path"],
         val_data_path=experiment_params["dataset_params"]["val_data_path"],
