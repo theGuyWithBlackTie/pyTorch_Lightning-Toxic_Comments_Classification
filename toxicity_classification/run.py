@@ -39,3 +39,4 @@ if __name__ == "__main__":
     experiment_params["dataset_params"]["train_dataloader_length"] = len(data_module.train_dataloader())
     model = ToxicityClassificationTrainer(experiment_params)
     trainer.fit(model, datamodule=data_module)
+    trainer.test(model, datamodule=data_module)
