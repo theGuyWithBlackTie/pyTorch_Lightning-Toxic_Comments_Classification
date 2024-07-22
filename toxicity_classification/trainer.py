@@ -1,5 +1,6 @@
 import torch
 import pytorch_lightning as pl
+from torchmetrics.functional.classification import multilabel_f1_score
 
 from models import ToxicCommentTaggerBERT
 
@@ -31,22 +32,32 @@ class ToxicityClassificationTrainer(pl.LightningModule):
         loss = 0
         if labels is not None:
             loss = self.loss_fn(probabilities, labels)
-        return loss, probabilities
+        else:
+            labels = None
+        return loss, probabilities, labels
 
     def training_step(self, batch, batch_idx):
-        loss, probabilities = self(**self.common_step(batch))
+        loss, probabilities, labels = self(**self.common_step(batch))
         self.log("training_loss", loss, prog_bar=True, logger=True)
         self.training_step_loss_outputs.append(loss)
+        self.training_F1_score = multilabel_f1_score(probabilities, labels,
+                                                     num_labels=len(self.experiment_params["dataset_params"]["labels"]))
+        self.log("training_F1_score", self.training_F1_score, prog_bar=True, logger=True,
+                 on_step=False, on_epoch=True)
         return loss
 
     def validation_step(self, batch, batch_idx):
-        loss, probabilities = self(**self.common_step(batch))
+        loss, probabilities, labels = self(**self.common_step(batch))
         self.log("validation_loss", loss, prog_bar=True, logger=True)
         self.validation_step_loss_outputs.append(loss)
+        self.validation_F1_score = multilabel_f1_score(probabilities, labels,
+                                                       num_labels=len(self.experiment_params["dataset_params"]["labels"]))
+        self.log("validation_F1_score", self.validation_F1_score, prog_bar=True, logger=True,
+                 on_step=False, on_epoch=True)
         return loss
 
     def test_step(self, batch, batch_idx):
-        loss, probabilities = self(**self.common_step(batch))
+        loss, probabilities, labels = self(**self.common_step(batch))
         self.log("test_loss", loss, prog_bar=True, logger=True)
         self.test_step_loss_outputs.append(loss)
         return loss
