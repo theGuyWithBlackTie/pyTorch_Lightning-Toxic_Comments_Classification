@@ -1,6 +1,9 @@
 import argparse
+from datetime import datetime
+
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks.early_stopping import EarlyStopping
+from pytorch_lightning.loggers import MLFlowLogger
 
 from params import experiment_params
 from trainer import ToxicityClassificationTrainer
@@ -10,6 +13,11 @@ from callbacks import ValidationLossEarlyStopping, TrainingLossEarlyStopping
 
 def return_early_stopping_callback(patience, min_delta):
     return EarlyStopping(monitor="validation_loss", patience=patience, min_delta=min_delta, verbose=True, mode="min")
+
+def get_logger():
+    return MLFlowLogger(experiment_name="Toxicity Classification",
+                        run_name=f"toxicity_classification_{str(datetime.now())}",
+                        tracking_uri="http://localhost:5000", artifact_location="./artifacts")
 
 if __name__ == "__main__":
     # -----------------------------------
@@ -25,7 +33,7 @@ if __name__ == "__main__":
     training_loss_earlystopping = TrainingLossEarlyStopping(experiment_params)
     validation_loss_earlystopping = ValidationLossEarlyStopping(experiment_params)
     trainer = Trainer(callbacks=[training_loss_earlystopping, validation_loss_earlystopping],
-                      max_epochs=experiment_params["epochs"])
+                      max_epochs=experiment_params["epochs"], logger=get_logger())
 
     data_module = ToxicCommentsDataModule(
         train_data_path=experiment_params["dataset_params"]["train_data_path"],
