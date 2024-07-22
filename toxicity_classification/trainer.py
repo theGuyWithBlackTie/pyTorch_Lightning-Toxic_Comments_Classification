@@ -38,7 +38,7 @@ class ToxicityClassificationTrainer(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         loss, probabilities, labels = self(**self.common_step(batch))
-        self.log("training_loss", loss, prog_bar=True, logger=True)
+        self.log("training_loss", loss, prog_bar=True, logger=False)
         self.training_step_loss_outputs.append(loss)
         self.training_F1_score = multilabel_f1_score(probabilities, labels,
                                                      num_labels=len(self.experiment_params["dataset_params"]["labels"]))
@@ -48,7 +48,7 @@ class ToxicityClassificationTrainer(pl.LightningModule):
 
     def validation_step(self, batch, batch_idx):
         loss, probabilities, labels = self(**self.common_step(batch))
-        self.log("validation_loss", loss, prog_bar=True, logger=True)
+        self.log("validation_loss", loss, prog_bar=True, logger=False)
         self.validation_step_loss_outputs.append(loss)
         self.validation_F1_score = multilabel_f1_score(probabilities, labels,
                                                        num_labels=len(self.experiment_params["dataset_params"]["labels"]))
@@ -58,7 +58,7 @@ class ToxicityClassificationTrainer(pl.LightningModule):
 
     def test_step(self, batch, batch_idx):
         loss, probabilities, labels = self(**self.common_step(batch))
-        self.log("test_loss", loss, prog_bar=True, logger=True)
+        self.log("test_loss", loss, prog_bar=True, logger=False)
         self.test_step_loss_outputs.append(loss)
         return loss
 
